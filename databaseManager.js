@@ -11,14 +11,16 @@ const openDB = async()=>{
 
 initiate = async()=>{
     const db = await openDB();
-    await db.get('CREATE TABLE IF NOT EXISTS channel('+
+    await db.get('CREATE TABLE IF NOT EXISTS messages('+
+        'channel INTEGER DEFAULT (1) NOT NULL,' +
         'sender TEXT NOT NULL,'+
         'date INTEGER DEFAULT (strftime(\'%s\', \'now\')) NOT NULL,'+
         'text TEXT, PRIMARY KEY(date, sender));')
 }
 
-execute = async (statement) => {
-    console.log('Executing sql:\t\t' + statement)
+execute = async (statement, debug = true) => {
+    if(debug)
+        console.log('\nExecuting sql:\t\t' + statement);
     const db = await openDB();
     let result = await db.all(statement);
     if(result.length > 0){
@@ -31,32 +33,47 @@ execute = async (statement) => {
 let functions = {execute, initiate};
 
 functions.getAll = async() => {
-    return await execute('SELECT * FROM channel ORDER BY date;');
+    return await execute('SELECT * FROM messages ORDER BY date;');
 }
 
-functions.add = async(sender, text)=>{
-    execute(`INSERT INTO channel (sender, text) VALUES (\'${sender}\', \'${text}\');`)
+functions.getMessagesInChannel = async(id) => {
+    return await execute(`SELECT * FROM messages WHERE channel = ${id} ORDER BY date`);
+}
+
+functions.getChannels = async() => {
+    return await execute('SELECT DISTINCT channel FROM MESSAGES');
+}
+
+
+functions.add = async(sender, text, channel)=>{
+    execute(`INSERT INTO messages (sender, text, channel) VALUES (\'${sender}\', \'${text}\', ${channel});`)
 }
 
 functions.delete = async(sender, date)=>{
-    execute(`DELETE FROM channel WHERE sender = \'${sender}\' AND date = \'${date}\'`);
+    execute(`DELETE FROM messages WHERE sender = \'${sender}\' AND date = \'${date}\'`);
 }
 
 functions.modify = async(sender, date, newMessage)=>{
-    execute(`UPDATE channel SET text = ${newMessage} WHERE sender = \'${sender}\' AND date = \'${date}\'`);
+    execute(`UPDATE messages SET text = ${newMessage} WHERE sender = \'${sender}\' AND date = \'${date}\'`);
 }
 
 
 const {testData} = require('./testData')
 functions.reset = async()=>{
+    console.log('resetting database with test values from testData.js');
     await initiate();
-    await execute('DROP TABLE channel');
+    await execute('DROP TABLE messages', false);
     await initiate();
     testData.map(async(item)=>{
-        const {sender, date, text} = item;
-        await execute(`INSERT INTO channel (sender, date, text) VALUES (\'${sender}\', ${date} , \'${text}\');`);
-    })
-    // await execute('SELECT * FROM channel WHERE sender = \'Gremblo\';');
+        const {sender, date, text, channel} = item;
+        try {
+            await execute(`INSERT INTO messages (channel, sender, date, text) VALUES ` +
+                `(${channel}, \'${sender}\', ${date} , \'${text}\');`, false);
+        } catch (error) {
+            console.log("Whoopsie");
+        }
+    });
+    // await execute('SELECT * FROM messages WHERE sender = \'Gremblo\';');
 }
 
 exports.database = functions;
