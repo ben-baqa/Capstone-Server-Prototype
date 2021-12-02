@@ -26,7 +26,8 @@ const testData = [
     {
         date: 1631901564,
         sender:'Kindersly',
-        text:'No'
+        text:'No',
+        channel:"2"
     },
     {
         date: 1631901664,
