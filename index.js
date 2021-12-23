@@ -1,8 +1,26 @@
 const {database} = require('./databaseManager')
+const {createSocketServer} = require('./socketHandler')
 const express = require('express')
-const app = express()
+// const http = require('http')
+const WebSocket = require('ws')
 
 const port = 3001
+const app = express()
+
+// var server = http.createServer(app)
+// let wsServer = new WebSocket.Server({ port: 3002 })
+
+// wsServer.on('connection', (ws) => {
+//     ws.on('message', (ms) => {
+//         console.log('received: ', ms.toString())
+//     })
+
+//     ws.send('test response')
+// })
+
+// server.listen(3002)
+
+createSocketServer()
 
 
 if(process.argv[2] === 'reset')
@@ -28,11 +46,11 @@ app.use((req, res, next)=>{
 
 app.get('/', async(req, res) =>{
     res.send('Basic API Usage:\t' +
-    '/all -> all messages\t' +
-    '/channels -> all unique channels\t' +
-    '/p/# -> all messages in channel #\t\t' +
-    '/post -> add new message given the following info: {sender=\'\', text=\'\', channel=#}\t\t' +
-    '/delete -> delete a message matching given info: {sender=\'\', date=(unix timestamp)}')
+    'get/all -> all messages\t' +
+    'get/channels -> all unique channels\t' +
+    'get/p/# -> all messages in channel #\t\t' +
+    'post -> add new message given the following info: {sender=\'\', text=\'\', channel=#}\t\t' +
+    'delete -> delete a message matching given info: {sender=\'\', date=(unix timestamp)}')
 })
 
 // fetch all

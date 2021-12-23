@@ -73,6 +73,7 @@ functions.reset = async()=>{
             console.log("Whoopsie");
         }
     });
+    console.log('Done')
     // await execute('SELECT * FROM messages WHERE sender = \'Gremblo\';');
 }
 
