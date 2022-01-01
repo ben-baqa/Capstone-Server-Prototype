@@ -54,7 +54,7 @@ functions.delete = async(sender, date)=>{
 }
 
 functions.modify = async(sender, date, newMessage)=>{
-    execute(`UPDATE messages SET text = ${newMessage} WHERE sender = \'${sender}\' AND date = \'${date}\'`);
+    execute(`UPDATE messages SET text = \'${newMessage}\' WHERE sender = \'${sender}\' AND date = ${date}`);
 }
 
 

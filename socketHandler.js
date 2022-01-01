@@ -1,10 +1,24 @@
 const {database} = require('./databaseManager')
 const WebSocket = require('ws')
+const https = require('https')
+const fs = require('fs')
 
 let sockets = {}
+let httpsServer
+let wsServer
 
 exports.createSocketServer = (port) => {
-    let wsServer = new WebSocket.Server({ port: 3002 })
+    const key = fs.readFileSync('key-rsa.pem')
+    const cert = fs.readFileSync('cert.pem')
+
+    httpsServer = https.createServer({ key, cert },
+        (req, res) => {
+            res.writeHead(200)
+            res.end('hello world\n')
+            console.log('Https request received.')
+        }).listen(8080)
+
+    wsServer = new WebSocket.Server({ server: httpsServer })
 
     wsServer.on('connection', (ws) => {
         ws.on('message', handleMessage)
@@ -76,7 +90,7 @@ let handleMessage = (m) => {
 }
 
 // handles information requests
-let handleGet = async(ar) => {
+let handleGet = async(ar, id) => {
     switch (ar[0]) {
         case 'all': // get all messages
             // format: get/all:id
