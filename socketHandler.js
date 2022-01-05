@@ -51,6 +51,12 @@ let handleMessage = (m) => {
     let ar = m[0].split("/")
     let id = parseInt(m[1])
 
+    if(id < 0 || id >= sockets.length)
+    {
+        console.log(`\n ERROR: message received from invalid id: ${id}`)
+        return;
+    }
+
     console.log(`From Socket ${id}: `, m[0])
 
     switch (ar[0]) {
