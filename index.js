@@ -20,7 +20,7 @@ const app = express()
 
 // server.listen(3002)
 
-createSocketServer()
+createSocketServer(8080)
 
 
 if(process.argv[2] === 'reset')

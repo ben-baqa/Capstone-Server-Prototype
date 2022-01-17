@@ -2,13 +2,12 @@ const {database} = require('./databaseManager')
 const WebSocket = require('ws')
 const https = require('https')
 const fs = require('fs')
-const { request } = require('express')
 
 let sockets = {}
 let httpsServer
 let wsServer
 
-exports.createSocketServer = (port) => {
+exports.createSocketServer = (port = 8080) => {
     const key = fs.readFileSync('key-rsa.pem')
     const cert = fs.readFileSync('cert.pem')
 
@@ -17,7 +16,7 @@ exports.createSocketServer = (port) => {
             res.writeHead(200)
             res.end('hello world\n')
             console.log('Https request received.')
-        }).listen(8080)
+        }).listen(port)
 
     wsServer = new WebSocket.Server({ server: httpsServer })
 
@@ -33,6 +32,7 @@ exports.createSocketServer = (port) => {
         ws.send(`connection id:${id}`)
         sockets[id] = ws
     })
+    console.log(`wss server listening on port ${port}`)
 }
 
 // fetches the lowest available socket identifier
