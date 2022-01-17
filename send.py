@@ -25,9 +25,11 @@ text = text[:-1]
 # set up data values for the HTTP request
 # for sending to a server on the same machine
 # url = "http://localhost:3001"
+
 # for sending to persistant development server
+# need to update whenever the tunnel goes down
 url = "https://yellow-yak-70.loca.lt/"
-# url = "http://10.0.0.105:3001"
+
 data = {'sender': 'Remote User', 'text': text, 'channel': channel}
 headers = {'Content-type': 'application/json'}
 # send the requesta and print the result

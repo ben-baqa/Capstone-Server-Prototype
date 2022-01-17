@@ -2,25 +2,14 @@ const {database} = require('./databaseManager')
 const {createSocketServer} = require('./socketHandler')
 const express = require('express')
 // const http = require('http')
-const WebSocket = require('ws')
+// const WebSocket = require('ws')
 
 const port = 3001
+const socketServerPort = 8080
+
 const app = express()
 
-// var server = http.createServer(app)
-// let wsServer = new WebSocket.Server({ port: 3002 })
-
-// wsServer.on('connection', (ws) => {
-//     ws.on('message', (ms) => {
-//         console.log('received: ', ms.toString())
-//     })
-
-//     ws.send('test response')
-// })
-
-// server.listen(3002)
-
-createSocketServer(8080)
+createSocketServer(socketServerPort)
 
 
 if(process.argv[2] === 'reset')
@@ -94,3 +83,19 @@ app.delete('/', (req, res)=>{
     database.delete(sender, date)
     res.send('received a delete request')
 })
+
+
+
+// // create https server wrapping express app
+// const https = require('https')
+// const fs = require('fs')
+// const key = fs.readFileSync('key-rsa.pem')
+// const cert = fs.readFileSync('cert.pem')
+// const credentials = {key, cert}
+
+// const httpsExpressServer = https.createServer(credentials, app)
+// httpsExpressServer.listen(port, ()=>{
+//     console.log(`Example app listening at http://localhost:${port}\n`)
+//     database.initiate();
+//     database.reset();
+// })
