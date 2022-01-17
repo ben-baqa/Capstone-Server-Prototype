@@ -10,13 +10,9 @@ let wsServer
 exports.createSocketServer = (port = 8080) => {
     const key = fs.readFileSync('key-rsa.pem')
     const cert = fs.readFileSync('cert.pem')
-
-    httpsServer = https.createServer({ key, cert },
-        (req, res) => {
-            res.writeHead(200)
-            res.end('hello world\n')
-            console.log('Https request received.')
-        }).listen(port)
+    
+    httpsServer = https.createServer({key, cert})
+    httpsServer.listen(port)
 
     wsServer = new WebSocket.Server({ server: httpsServer })
 

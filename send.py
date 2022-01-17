@@ -14,6 +14,7 @@ try:
         raise ValueError
 except ValueError:
     print("Please enter a valid channel number")
+    exit(1)
 
 # get message from comman line args
 text = ''
@@ -22,7 +23,11 @@ for arg in sys.argv[2:]:
 text = text[:-1]
 
 # set up data values for the HTTP request
-url = "http://localhost:3001"
+# for sending to a server on the same machine
+# url = "http://localhost:3001"
+# for sending to persistant development server
+url = "https://yellow-yak-70.loca.lt/"
+# url = "http://10.0.0.105:3001"
 data = {'sender': 'Remote User', 'text': text, 'channel': channel}
 headers = {'Content-type': 'application/json'}
 # send the requesta and print the result
