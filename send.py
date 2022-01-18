@@ -28,7 +28,7 @@ text = text[:-1]
 
 # for sending to persistant development server
 # need to update whenever the tunnel goes down
-url = "https://yellow-yak-70.loca.lt/"
+url = "https://bitter-pug-94.loca.lt/"
 
 data = {'sender': 'Remote User', 'text': text, 'channel': channel}
 headers = {'Content-type': 'application/json'}
