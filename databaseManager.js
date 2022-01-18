@@ -18,6 +18,8 @@ initiate = async()=>{
         'text TEXT, PRIMARY KEY(date, sender));')
 }
 
+// execute the provided SQL statement,
+// return json string of result
 execute = async (statement, debug = true) => {
     if(debug)
         console.log('\nExecuting sql:\t\t' + statement);
@@ -46,15 +48,15 @@ functions.getChannels = async() => {
 
 
 functions.add = async(sender, text, channel)=>{
-    execute(`INSERT INTO messages (sender, text, channel) VALUES (\'${sender}\', \'${text}\', ${channel});`)
+    await execute(`INSERT INTO messages (sender, text, channel) VALUES (\'${sender}\', \'${text}\', ${channel});`)
 }
 
 functions.delete = async(sender, date)=>{
-    execute(`DELETE FROM messages WHERE sender = \'${sender}\' AND date = \'${date}\'`);
+    await execute(`DELETE FROM messages WHERE sender = \'${sender}\' AND date = ${date}`);
 }
 
 functions.modify = async(sender, date, newMessage)=>{
-    execute(`UPDATE messages SET text = \'${newMessage}\' WHERE sender = \'${sender}\' AND date = ${date}`);
+    await execute(`UPDATE messages SET text = \'${newMessage}\' WHERE sender = \'${sender}\' AND date = ${date}`);
 }
 
 

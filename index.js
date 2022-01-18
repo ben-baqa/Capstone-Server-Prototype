@@ -1,5 +1,5 @@
 const {database} = require('./databaseManager')
-const {createSocketServer} = require('./socketHandler')
+const {createSocketServer, onChannelUpdate} = require('./socketHandler')
 const express = require('express')
 // const http = require('http')
 // const WebSocket = require('ws')
@@ -63,26 +63,27 @@ app.get('/channels', async(req, res)=>{
 })
 
 // add new message
-app.post('/', (req, res)=>{
+app.post('/', async(req, res)=>{
     const {sender, text, channel} = req.body;
     console.log('from: ' + sender + "\tin channel " + channel + '\n' + text);
-    database.add(sender, text, channel);
+    await database.add(sender, text, channel);
+    onChannelUpdate(channel)
     res.send('received a post request')
 })
 
-// modify message
-app.put('/', async(req, res)=>{
-    console.log('received a put request')
-    res.send('received a put request')
-})
+// // modify message
+// app.put('/', async(req, res)=>{
+//     console.log('received a put request')
+//     res.send('received a put request')
+// })
 
-// delete message
-app.delete('/', (req, res)=>{
-    console.log('received a delete request')
-    const {sender, date} = req.body;
-    database.delete(sender, date)
-    res.send('received a delete request')
-})
+// // delete message
+// app.delete('/', (req, res)=>{
+//     console.log('received a delete request')
+//     const {sender, date} = req.body;
+//     database.delete(sender, date)
+//     res.send('received a delete request')
+// })
 
 
 
@@ -95,7 +96,7 @@ app.delete('/', (req, res)=>{
 
 // const httpsExpressServer = https.createServer(credentials, app)
 // httpsExpressServer.listen(port, ()=>{
-//     console.log(`Example app listening at http://localhost:${port}\n`)
+//     console.log(`Example app listening at https://localhost:${port}\n`)
 //     database.initiate();
 //     database.reset();
 // })
