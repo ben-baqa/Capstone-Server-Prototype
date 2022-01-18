@@ -59,7 +59,7 @@ app.get('/p/:channelId', async(req, res)=>{
 // fetch a list of all channels
 app.get('/channels', async(req, res)=>{
     let channels = await database.getChannels();
-    res.send(channels);
+    res.send(JSON.stringify(channels));
 })
 
 // add new message

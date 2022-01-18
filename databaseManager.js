@@ -20,15 +20,17 @@ initiate = async()=>{
 
 // execute the provided SQL statement,
 // return json string of result
-execute = async (statement, debug = true) => {
+execute = async (statement, stringify = true, debug = true) => {
     if(debug)
         console.log('\nExecuting sql:\t\t' + statement);
     const db = await openDB();
     let result = await db.all(statement);
     if(result.length > 0){
-        let value = await JSON.stringify(result, null, '\t');
-        // console.log('value fetched:\n' + value);
-        return value;
+        if(stringify){
+            let value = await JSON.stringify(result, null, '\t');
+            return value;
+        }else
+            return result;
     }
 }
 
@@ -39,11 +41,15 @@ functions.getAll = async() => {
 }
 
 functions.getMessagesInChannel = async(id) => {
-    return await execute(`SELECT * FROM messages WHERE channel = ${id} ORDER BY date`);
+    let messages = await execute(`SELECT * FROM messages WHERE channel = ${id} ORDER BY date`);
+    return messages? messages: '[]'
 }
 
 functions.getChannels = async() => {
-    return await execute('SELECT DISTINCT channel FROM MESSAGES');
+    let channels = await execute('SELECT DISTINCT channel FROM MESSAGES', false);
+    let channelArray = []
+    channels.forEach(entry => channelArray.push(entry.channel))
+    return channelArray
 }
 
 
@@ -64,13 +70,13 @@ const {testData} = require('./testData')
 functions.reset = async()=>{
     console.log('resetting database with test values from testData.js');
     await initiate();
-    await execute('DROP TABLE messages', false);
+    await execute('DROP TABLE messages', true, false);
     await initiate();
     testData.map(async(item)=>{
         const {sender, date, text, channel} = item;
         try {
             await execute(`INSERT INTO messages (channel, sender, date, text) VALUES ` +
-                `(${channel}, \'${sender}\', ${date} , \'${text}\');`, false);
+                `(${channel}, \'${sender}\', ${date} , \'${text}\');`, true, false);
         } catch (error) {
             console.log("Whoopsie");
         }

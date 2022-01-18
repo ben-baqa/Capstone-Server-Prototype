@@ -164,6 +164,8 @@ let handleGet = async(segments, id) => {
             // format get/channel/channelId:id
             requests[id] = `channel/${segments[1]}`
             let messages = await database.getMessagesInChannel(segments[1])
+            // if(messages == undefined)
+            //     messages = '[]'
             sockets[id].send(messages)
             break
     
@@ -175,43 +177,41 @@ let handleGet = async(segments, id) => {
 // fetch an updated list of channels
 let updateChannelList = async() => {
     let channels = await database.getChannels()
-    channels = JSON.parse(channels)
-    let channelList = []
-    channels.forEach(entry => channelList.push(entry.channel))
-    channelListString = await JSON.stringify(channelList)
-    return channelList
+    // channels = JSON.parse(channels)
+    // let channelList = []
+    // channels.forEach(entry => channelList.push(entry.channel))
+    channelListString = await JSON.stringify(channels)
+    return channels
 }
 
 // called when the contents of a given channel are modified
 // updates connected clients with fresh data if it has been altered
 exports.onChannelUpdate = async(channelId, deletion = false) => {
-    if (!(channelId in channelListCache)){
-        console.log(`-----------new channel added (#${channelId})`)
-        updateClientChannelLists(updateChannelList())
-    }else if (deletion){
-        let newChannelList = updateChannelList();
+    if(deletion){
+        let newChannelList = await updateChannelList();
         if (newChannelList.length != channelListCache.length){
             console.log(`-----------channel ${channelId} completely deleted`)
-            updateClientChannelLists(newChannelList)
+            channelListCache = newChannelList
+            sendToAll(channelListString, req => req == 'channels')
+            // updateClientChannelLists(newChannelList)
         }
+    } else if (!(channelId in channelListCache)){
+        console.log(`-----------new channel added (#${channelId})`)
+        channelListCache = await updateChannelList();
+        sendToAll(channelListString, req => req == 'channels')
+        // updateClientChannelLists(updateChannelList())
     }
 
     // update all clients currently viewing effected channel
     let channelMessages = await database.getMessagesInChannel(channelId)
-    for (var key in sockets){
-        console.log(`Request ${key}: ${requests[key]}`)
-        if(requests[key] == `channel/${channelId}`)
-            sockets[key].send(channelMessages)
-    }
+    sendToAll(channelMessages, req => req == `channel/${channelId}`)
 }
 
-// update all clients browsing list of channels with an updated list
-let updateClientChannelLists = async(newChannelList) => {
-    channelListCache = await updateChannelList()
+// sends a payload to every connected socket whose
+// last get request satifies the provided condition
+let sendToAll = (payload, requestCondition) =>{
     for (var key in sockets){
-        if(requests[key] == "channels"){
-            sockets[key].send(channelListString)
-            console.log(`----------updating socket ${key} with new channel list`)
-        }
+        if(requestCondition(requests[key]))
+            sockets[key].send(payload)
     }
 }
