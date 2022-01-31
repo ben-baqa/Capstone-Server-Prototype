@@ -1,7 +1,6 @@
 const {database} = require('./databaseManager')
 const WebSocket = require('ws')
-const https = require('https')
-const fs = require('fs')
+const Http = require('http')
 /* Author: Benjamin Nielsen
 Runs the communication of a back end server with a front end
 messaging application, using websockets to enable automatic live
@@ -35,20 +34,17 @@ let channelListCache = []
 // stringified version of channelListCache to avoid unneccesary string conversions
 let channelListString = ""
 
-// The secure http server facilitating secure websocket connections
-let httpsServer
+// The http server handling requests and websocket connections
+let httpServer
 // WebSocket server that runs communication with front end
 let wsServer
 
 // creates and initializes secure websocket server
-exports.createSocketServer = (port = 8080) => {
-    const key = fs.readFileSync('key-rsa.pem')
-    const cert = fs.readFileSync('cert.pem')
-    
-    httpsServer = https.createServer({key, cert})
-    httpsServer.listen(port)
+exports.createSocketServer = (app, port = 8080) => {
+    httpServer = Http.createServer()
 
-    wsServer = new WebSocket.Server({ server: httpsServer })
+    wsServer = new WebSocket.Server({ server: httpServer })
+    httpServer.on('request', app)
 
     wsServer.on('connection', (ws) => {
         ws.on('message', parseMessage)
@@ -66,7 +62,10 @@ exports.createSocketServer = (port = 8080) => {
         sockets[id] = ws
         requests[id] = "null"
     })
-    console.log(`wss server listening on port ${port}`)
+
+    httpServer.listen(port, ()=>{
+        console.log(`http/ws server listening on port ${port}`)
+    })
 }
 
 // fetches the lowest available socket identifier

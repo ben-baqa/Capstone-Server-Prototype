@@ -4,7 +4,8 @@
   "description": "Prototype of a web server for capstone project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node index.js debug",
+    "reset": "node index.js reset",
     "start": "node index.js"
   },
   "author": "",
