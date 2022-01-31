@@ -48,7 +48,8 @@ functions.getMessagesInChannel = async(id) => {
 functions.getChannels = async() => {
     let channels = await execute('SELECT DISTINCT channel FROM MESSAGES', false);
     let channelArray = []
-    channels.forEach(entry => channelArray.push(entry.channel))
+    if(channels)
+        channels.forEach(entry => channelArray.push(entry.channel))
     return channelArray
 }
 
