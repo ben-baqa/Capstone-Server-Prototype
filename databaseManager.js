@@ -29,7 +29,9 @@ initiate = async()=>{
             'sender TEXT NOT NULL,'+
             'date INTEGER DEFAULT (strftime(\'%s\', \'now\')) NOT NULL,'+
             'text TEXT, PRIMARY KEY(date, sender));')
+        db.release()
     } catch (err) {
+        console.error('\n\nan error occured when initializing the database')
         console.error(err)
     }
 
@@ -48,6 +50,7 @@ execute = async (statement, stringify = true, debug = true) => {
         console.log('\nExecuting sql:\t\t' + statement);
     const db = await openDB();
     let result = await db.query(statement);
+    db.release()
     if(result.length > 0){
         if(stringify){
             let value = await JSON.stringify(result, null, '\t');
