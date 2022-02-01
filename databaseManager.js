@@ -27,7 +27,7 @@ initiate = async()=>{
         await db.query('CREATE TABLE IF NOT EXISTS messages('+
             'channel INTEGER DEFAULT (1) NOT NULL,' +
             'sender TEXT NOT NULL,'+
-            'date INTEGER DEFAULT (strftime(\'%s\', \'now\')) NOT NULL,'+
+            'date INTEGER NOT NULL DEFAULT (date_part(\'epoch\'::text, now()) * (1000))::double precision,'+
             'text TEXT, PRIMARY KEY(date, sender));')
         db.release()
     } catch (err) {
