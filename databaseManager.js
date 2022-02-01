@@ -64,7 +64,7 @@ executeWithParams = async (statement, parameters, stringify = true, debug = true
     if(debug)
         console.log('\nExecuting sql:\t\t' + statement);
     const db = await openDB();
-    let result = await db.query(statement, parameters).then(res => console.log(res.rows[0]));
+    let result = await db.query(statement, parameters);
     db.release()
     if(result.length > 0){
         if(stringify){
