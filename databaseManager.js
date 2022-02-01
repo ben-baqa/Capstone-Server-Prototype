@@ -1,21 +1,44 @@
 const sqlite3 = require('sqlite3');
 const {open} = require('sqlite');
+const { Pool } = require('pg');
+
+let pool
 
 const openDB = async()=>{
     // open the database
-    return await open({
-        filename: 'database.db',
-        driver: sqlite3.Database
-    });
+    return await pool.connect()
+
+    // return await open({
+    //     filename: 'database.db',
+    //     driver: sqlite3.Database
+    // });
 }
 
 initiate = async()=>{
-    const db = await openDB();
-    await db.get('CREATE TABLE IF NOT EXISTS messages('+
-        'channel INTEGER DEFAULT (1) NOT NULL,' +
-        'sender TEXT NOT NULL,'+
-        'date INTEGER DEFAULT (strftime(\'%s\', \'now\')) NOT NULL,'+
-        'text TEXT, PRIMARY KEY(date, sender));')
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    });
+
+    try {
+        const db = await openDB()
+        await db.query('CREATE TABLE IF NOT EXISTS messages('+
+            'channel INTEGER DEFAULT (1) NOT NULL,' +
+            'sender TEXT NOT NULL,'+
+            'date INTEGER DEFAULT (strftime(\'%s\', \'now\')) NOT NULL,'+
+            'text TEXT, PRIMARY KEY(date, sender));')
+    } catch (err) {
+        console.error(err)
+    }
+
+    // const db = await openDB();
+    // await db.get('CREATE TABLE IF NOT EXISTS messages('+
+    //     'channel INTEGER DEFAULT (1) NOT NULL,' +
+    //     'sender TEXT NOT NULL,'+
+    //     'date INTEGER DEFAULT (strftime(\'%s\', \'now\')) NOT NULL,'+
+    //     'text TEXT, PRIMARY KEY(date, sender));')
 }
 
 // execute the provided SQL statement,
@@ -24,7 +47,7 @@ execute = async (statement, stringify = true, debug = true) => {
     if(debug)
         console.log('\nExecuting sql:\t\t' + statement);
     const db = await openDB();
-    let result = await db.all(statement);
+    let result = await db.query(statement);
     if(result.length > 0){
         if(stringify){
             let value = await JSON.stringify(result, null, '\t');

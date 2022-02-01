@@ -28,7 +28,7 @@ text = text[:-1]
 
 # for sending to persistant development server
 # need to update whenever the tunnel goes down
-url = "https://bitter-pug-94.loca.lt/"
+url = "https://talk-box-server.herokuapp.com/"
 
 data = {'sender': 'Remote User', 'text': text, 'channel': channel}
 headers = {'Content-type': 'application/json'}
