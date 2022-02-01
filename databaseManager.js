@@ -60,6 +60,21 @@ execute = async (statement, stringify = true, debug = true) => {
     }
 }
 
+executeWithParams = async (statement, parameters, stringify = true, debug = true) => {
+    if(debug)
+        console.log('\nExecuting sql:\t\t' + statement);
+    const db = await openDB();
+    let result = await db.query(statement, parameters).then(res => console.log(res.rows[0]));
+    db.release()
+    if(result.length > 0){
+        if(stringify){
+            let value = await JSON.stringify(result, null, '\t');
+            return value;
+        }else
+            return result;
+    }
+}
+
 let functions = {execute, initiate};
 
 functions.getAll = async() => {
@@ -67,7 +82,7 @@ functions.getAll = async() => {
 }
 
 functions.getMessagesInChannel = async(id) => {
-    let messages = await execute(`SELECT * FROM messages WHERE channel = ${id} ORDER BY date`);
+    let messages = await executeWithParams(`SELECT * FROM messages WHERE channel = $1 ORDER BY date`, [id]);
     return messages? messages: '[]'
 }
 
@@ -81,19 +96,20 @@ functions.getChannels = async() => {
 
 
 functions.add = async(sender, text, channel)=>{
-    await execute(`INSERT INTO messages (sender, text, channel) VALUES (\'${sender}\', \'${text}\', ${channel});`)
+    await executeWithParams(`INSERT INTO messages (sender, text, channel) VALUES ($1, $2, $3);`, [sender, text, channel])
 }
 
 functions.delete = async(sender, date)=>{
-    await execute(`DELETE FROM messages WHERE sender = \'${sender}\' AND date = ${date}`);
+    await executeWithParams(`DELETE FROM messages WHERE sender = $1 AND date = $2`, [sender, date]);
 }
 
 functions.modify = async(sender, date, newMessage)=>{
-    await execute(`UPDATE messages SET text = \'${newMessage}\' WHERE sender = \'${sender}\' AND date = ${date}`);
+    await executeWithParams(`UPDATE messages SET text = $1 WHERE sender = $2 AND date = $3`, [newMessage, sender, date]);
 }
 
 
-const {testData} = require('./testData')
+const {testData} = require('./testData');
+const res = require('express/lib/response');
 functions.reset = async()=>{
     console.log('resetting database with test values from testData.js');
     await initiate();

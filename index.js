@@ -5,7 +5,6 @@ const {createSocketServer} = require('./socketHandler')
 const socketServerPort = 8080
 
 database.initiate();
-database.reset();
 if(process.argv[2] === 'reset')
     database.reset();
 
