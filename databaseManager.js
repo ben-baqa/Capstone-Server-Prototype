@@ -31,7 +31,7 @@ initiate = async()=>{
             'sender TEXT NOT NULL,'+
             'date bigint NOT NULL DEFAULT (date_part(\'epoch\'::text, now()) * (1000))::double precision,'+
             'text TEXT, PRIMARY KEY(date, sender));')
-            db.end()
+            // db.end()
         // db.release()
     } catch (err) {
         console.error('\n\nan error occured when initializing the database')
@@ -53,9 +53,9 @@ execute = async (statement, stringify = true, debug = true) => {
         if(debug)
             console.log('\nExecuting sql:\t\t' + statement);
         // const db = await openDB();
-        await db.connect()
+        // await db.connect()
         let result = await db.query(statement);
-        db.end()
+        // db.end()
         // db.release()
         if(result.length > 0){
             if(stringify){
@@ -75,9 +75,9 @@ executeWithParams = async (statement, parameters, stringify = true, debug = true
         if(debug)
             console.log('\nExecuting sql:\t\t' + statement);
         // const db = await openDB();
-        await db.connect()
+        // await db.connect()
         let result = await db.query(statement, parameters);
-        db.end()
+        // db.end()
         // db.release()
         if(result.length > 0){
             if(stringify){
