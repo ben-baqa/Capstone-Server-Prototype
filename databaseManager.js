@@ -3,7 +3,6 @@ const {open} = require('sqlite');
 const { Pool, Client } = require('pg');
 
 let pool
-const db = new Client()
 
 const openDB = async()=>{
     // open the database
@@ -25,13 +24,11 @@ initiate = async()=>{
 
     try {
         // const db = await openDB()
-        await db.connect()
-        await db.query('CREATE TABLE IF NOT EXISTS messages('+
+        await pool.query('CREATE TABLE IF NOT EXISTS messages('+
             'channel INTEGER DEFAULT (1) NOT NULL,' +
             'sender TEXT NOT NULL,'+
             'date bigint NOT NULL DEFAULT (date_part(\'epoch\'::text, now()) * (1000))::double precision,'+
             'text TEXT, PRIMARY KEY(date, sender));')
-            // db.end()
         // db.release()
     } catch (err) {
         console.error('\n\nan error occured when initializing the database')
@@ -48,20 +45,24 @@ initiate = async()=>{
 
 // execute the provided SQL statement,
 // return json string of result
-execute = async (statement, stringify = true, debug = true) => {
+execute = async (statement, stringify = true, debug = true, printRes = false) => {
     try {
         if(debug)
             console.log('\nExecuting sql:\t\t' + statement);
         // const db = await openDB();
         // await db.connect()
-        let result = await db.query(statement);
+        let result = await pool.query(statement);
         // db.end()
         // db.release()
         if(result.length > 0){
             if(stringify){
                 let value = await JSON.stringify(result, null, '\t');
+                if (printRes)
+                    console.log('Result: ', value)
                 return value;
             }else
+                if (printRes)
+                    console.log('Result: ', result)
                 return result;
         }
     } catch (err) {
@@ -70,20 +71,24 @@ execute = async (statement, stringify = true, debug = true) => {
     }
 }
 
-executeWithParams = async (statement, parameters, stringify = true, debug = true) => {
+executeWithParams = async (statement, parameters, stringify = true, debug = true, printRes = false) => {
     try {
         if(debug)
             console.log('\nExecuting sql:\t\t' + statement);
         // const db = await openDB();
         // await db.connect()
-        let result = await db.query(statement, parameters);
+        let result = await pool.query(statement, parameters);
         // db.end()
         // db.release()
         if(result.length > 0){
             if(stringify){
                 let value = await JSON.stringify(result, null, '\t');
+                if (printRes)
+                    console.log('Result: ', value)
                 return value;
             }else
+                if (printRes)
+                    console.log('Result: ', result)
                 return result;
         }
     } catch (err) {
@@ -95,7 +100,7 @@ executeWithParams = async (statement, parameters, stringify = true, debug = true
 let functions = {execute, initiate};
 
 functions.getAll = async() => {
-    return await execute('SELECT * FROM messages ORDER BY date;');
+    return await execute('SELECT * FROM messages ORDER BY date;', printRes = true);
 }
 
 functions.getMessagesInChannel = async(id) => {
