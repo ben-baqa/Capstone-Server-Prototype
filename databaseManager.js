@@ -1,8 +1,9 @@
 const sqlite3 = require('sqlite3');
 const {open} = require('sqlite');
-const { Pool } = require('pg');
+const { Pool, Client } = require('pg');
 
 let pool
+const db = new Client()
 
 const openDB = async()=>{
     // open the database
@@ -23,15 +24,15 @@ initiate = async()=>{
     });
 
     try {
-        const db = await openDB()
+        // const db = await openDB()
+        await db.connect()
         await db.query('CREATE TABLE IF NOT EXISTS messages('+
             'channel INTEGER DEFAULT (1) NOT NULL,' +
             'sender TEXT NOT NULL,'+
             'date bigint NOT NULL DEFAULT (date_part(\'epoch\'::text, now()) * (1000))::double precision,'+
             'text TEXT, PRIMARY KEY(date, sender));')
-        await db.query('GRANT SELECT ON ALL TABLES IN SCHEMA public TO gjxadeujlgnwvw')
-        
-        db.release()
+            db.end()
+        // db.release()
     } catch (err) {
         console.error('\n\nan error occured when initializing the database')
         console.error(err)
@@ -51,9 +52,11 @@ execute = async (statement, stringify = true, debug = true) => {
     try {
         if(debug)
             console.log('\nExecuting sql:\t\t' + statement);
-        const db = await openDB();
+        // const db = await openDB();
+        await db.connect()
         let result = await db.query(statement);
-        db.release()
+        db.end()
+        // db.release()
         if(result.length > 0){
             if(stringify){
                 let value = await JSON.stringify(result, null, '\t');
@@ -71,9 +74,11 @@ executeWithParams = async (statement, parameters, stringify = true, debug = true
     try {
         if(debug)
             console.log('\nExecuting sql:\t\t' + statement);
-        const db = await openDB();
+        // const db = await openDB();
+        await db.connect()
         let result = await db.query(statement, parameters);
-        db.release()
+        db.end()
+        // db.release()
         if(result.length > 0){
             if(stringify){
                 let value = await JSON.stringify(result, null, '\t');
