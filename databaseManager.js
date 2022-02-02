@@ -29,6 +29,8 @@ initiate = async()=>{
             'sender TEXT NOT NULL,'+
             'date bigint NOT NULL DEFAULT (date_part(\'epoch\'::text, now()) * (1000))::double precision,'+
             'text TEXT, PRIMARY KEY(date, sender));')
+        await db.query('GRANT SELECT ON ALL TABLES IN SCHEMA public TO gjxadeujlgnwvw')
+        
         db.release()
     } catch (err) {
         console.error('\n\nan error occured when initializing the database')
@@ -46,32 +48,42 @@ initiate = async()=>{
 // execute the provided SQL statement,
 // return json string of result
 execute = async (statement, stringify = true, debug = true) => {
-    if(debug)
-        console.log('\nExecuting sql:\t\t' + statement);
-    const db = await openDB();
-    let result = await db.query(statement);
-    db.release()
-    if(result.length > 0){
-        if(stringify){
-            let value = await JSON.stringify(result, null, '\t');
-            return value;
-        }else
-            return result;
+    try {
+        if(debug)
+            console.log('\nExecuting sql:\t\t' + statement);
+        const db = await openDB();
+        let result = await db.query(statement);
+        db.release()
+        if(result.length > 0){
+            if(stringify){
+                let value = await JSON.stringify(result, null, '\t');
+                return value;
+            }else
+                return result;
+        }
+    } catch (err) {
+        console.log('\nsomethig went wrong during a query')
+        console.error(err)
     }
 }
 
 executeWithParams = async (statement, parameters, stringify = true, debug = true) => {
-    if(debug)
-        console.log('\nExecuting sql:\t\t' + statement);
-    const db = await openDB();
-    let result = await db.query(statement, parameters);
-    db.release()
-    if(result.length > 0){
-        if(stringify){
-            let value = await JSON.stringify(result, null, '\t');
-            return value;
-        }else
-            return result;
+    try {
+        if(debug)
+            console.log('\nExecuting sql:\t\t' + statement);
+        const db = await openDB();
+        let result = await db.query(statement, parameters);
+        db.release()
+        if(result.length > 0){
+            if(stringify){
+                let value = await JSON.stringify(result, null, '\t');
+                return value;
+            }else
+                return result;
+        }
+    } catch (err) {
+        console.log('\n something went wrong during a parameterized query')
+        console.error(err)
     }
 }
 
