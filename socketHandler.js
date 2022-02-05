@@ -66,6 +66,11 @@ exports.createSocketServer = (app, port = 8080) => {
     httpServer.listen(port, ()=>{
         console.log(`http/ws server listening on port ${port}`)
     })
+
+    // ping all clients every 50s to keep back end connections alive
+    setInterval(() => {
+        sendToAll('ping', req => true)
+    }, 50000)
 }
 
 // fetches the lowest available socket identifier
