@@ -1,3 +1,5 @@
+// TODO fix errors occuring with null socket in array
+
 const {database} = require('./databaseManager')
 const WebSocket = require('ws')
 const Http = require('http')
