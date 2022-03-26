@@ -1,47 +1,92 @@
-const sqlite3 = require('sqlite3');
-const {open} = require('sqlite');
+const { Pool } = require('pg');
+
+let pool
 
 const openDB = async()=>{
     // open the database
-    return await open({
-        filename: 'database.db',
-        driver: sqlite3.Database
-    });
+    return await pool.connect()
 }
 
 initiate = async()=>{
-    const db = await openDB();
-    await db.get('CREATE TABLE IF NOT EXISTS messages('+
-        'channel INTEGER DEFAULT (1) NOT NULL,' +
-        'sender TEXT NOT NULL,'+
-        'date INTEGER DEFAULT (strftime(\'%s\', \'now\')) NOT NULL,'+
-        'text TEXT, PRIMARY KEY(date, sender));')
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    });
+
+    try {
+        await pool.query('CREATE TABLE IF NOT EXISTS messages('+
+            'channel INTEGER DEFAULT (1) NOT NULL,' +
+            'sender TEXT NOT NULL,'+
+            'date bigint NOT NULL DEFAULT (date_part(\'epoch\'::text, now()) * (1000))::double precision,'+
+            'text TEXT, PRIMARY KEY(date, sender));')
+    } catch (err) {
+        console.error('\n\nan error occured when initializing the database')
+        console.error(err)
+    }
 }
 
 // execute the provided SQL statement,
 // return json string of result
-execute = async (statement, stringify = true, debug = true) => {
-    if(debug)
-        console.log('\nExecuting sql:\t\t' + statement);
-    const db = await openDB();
-    let result = await db.all(statement);
-    if(result.length > 0){
-        if(stringify){
-            let value = await JSON.stringify(result, null, '\t');
-            return value;
-        }else
-            return result;
+execute = async (statement, stringify = true, debug = true, printRes = false) => {
+    try {
+        if(debug)
+            console.log('\nExecuting sql:\t\t' + statement)
+            
+        let res = await pool.query(statement)
+        let result = res.rows
+
+        if(result.length > 0){
+            if(stringify){
+                let value = await JSON.stringify(result, null, '\t')
+                if (printRes)
+                    console.log('Result: ', value)
+                return value;
+            }else
+                if (printRes)
+                    console.log('Result: ', result)
+                return result;
+        }
+    } catch (err) {
+        console.log('\nsomething went wrong during a query')
+        console.error(err)
+    }
+}
+
+executeWithParams = async (statement, parameters, stringify = true, debug = true, printRes = false) => {
+    try {
+        if(debug)
+            console.log('\nExecuting sql:\t\t' + statement);
+            
+        let res = await pool.query(statement, parameters);
+        let result = res.rows;
+        
+        if(result.length > 0){
+            if(stringify){
+                let value = await JSON.stringify(result, null, '\t');
+                if (printRes)
+                    console.log('Result: ', value)
+                return value;
+            }else
+                if (printRes)
+                    console.log('Result: ', result)
+                return result;
+        }
+    } catch (err) {
+        console.log('\n something went wrong during a parameterized query')
+        console.error(err)
     }
 }
 
 let functions = {execute, initiate};
 
 functions.getAll = async() => {
-    return await execute('SELECT * FROM messages ORDER BY date;');
+    return await execute('SELECT * FROM messages ORDER BY date;', printRes = true);
 }
 
 functions.getMessagesInChannel = async(id) => {
-    let messages = await execute(`SELECT * FROM messages WHERE channel = ${id} ORDER BY date`);
+    let messages = await executeWithParams(`SELECT * FROM messages WHERE channel = $1 ORDER BY date`, [id]);
     return messages? messages: '[]'
 }
 
@@ -55,19 +100,20 @@ functions.getChannels = async() => {
 
 
 functions.add = async(sender, text, channel)=>{
-    await execute(`INSERT INTO messages (sender, text, channel) VALUES (\'${sender}\', \'${text}\', ${channel});`)
+    await executeWithParams(`INSERT INTO messages (sender, text, channel) VALUES ($1, $2, $3);`, [sender, text, channel])
 }
 
 functions.delete = async(sender, date)=>{
-    await execute(`DELETE FROM messages WHERE sender = \'${sender}\' AND date = ${date}`);
+    await executeWithParams(`DELETE FROM messages WHERE sender = $1 AND date = $2`, [sender, date]);
 }
 
 functions.modify = async(sender, date, newMessage)=>{
-    await execute(`UPDATE messages SET text = \'${newMessage}\' WHERE sender = \'${sender}\' AND date = ${date}`);
+    await executeWithParams(`UPDATE messages SET text = $1 WHERE sender = $2 AND date = $3`, [newMessage, sender, date]);
 }
 
 
-const {testData} = require('./testData')
+const {testData} = require('./testData');
+const res = require('express/lib/response');
 functions.reset = async()=>{
     console.log('resetting database with test values from testData.js');
     await initiate();
@@ -83,7 +129,6 @@ functions.reset = async()=>{
         }
     });
     console.log('Done')
-    // await execute('SELECT * FROM messages WHERE sender = \'Gremblo\';');
 }
 
 exports.database = functions;
